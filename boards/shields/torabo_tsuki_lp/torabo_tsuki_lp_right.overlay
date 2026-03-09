@@ -2,19 +2,8 @@
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
-/ {
-    zip_temp_layer_mouse: zip_temp_layer_mouse {
-        compatible = "zmk,input-processor-temp-layer";
-        #input-processor-cells = <2>;
-        excluded-positions = <33 34 35>;
-    };
-};
-
 &pointing_listener {
-    input-processors = <
-        &zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)
-        &zip_temp_layer_mouse 4 1000
-    >;
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
 };
 
 &size_s_transform {
