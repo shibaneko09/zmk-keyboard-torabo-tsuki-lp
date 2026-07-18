@@ -68,6 +68,7 @@ int torabo_pointing_settings_set_and_save(const struct torabo_pointing_settings 
     torabo_pointing_settings_get(&previous);
     apply_settings(settings);
 
+#if IS_ENABLED(CONFIG_SETTINGS)
     struct persisted_pointing_settings persisted = {
         .cursor_scale_milli = settings->cursor_scale_milli,
         .scroll_scale_milli = settings->scroll_scale_milli,
@@ -81,8 +82,13 @@ int torabo_pointing_settings_set_and_save(const struct torabo_pointing_settings 
     }
 
     return ret;
+#else
+    apply_settings(&previous);
+    return -ENOTSUP;
+#endif
 }
 
+#if IS_ENABLED(CONFIG_SETTINGS)
 static int pointing_settings_load(const char *name, size_t len, settings_read_cb read_cb,
                                   void *cb_arg) {
     if (!settings_name_steq(name, "settings", NULL)) {
@@ -116,6 +122,7 @@ static int pointing_settings_load(const char *name, size_t len, settings_read_cb
 
 SETTINGS_STATIC_HANDLER_DEFINE(torabo_pointing, "torabo/pointing", NULL, pointing_settings_load,
                                NULL, NULL);
+#endif
 
 static int scale_event(struct input_event *event, uint16_t scale_milli, bool invert,
                        struct zmk_input_processor_state *state) {

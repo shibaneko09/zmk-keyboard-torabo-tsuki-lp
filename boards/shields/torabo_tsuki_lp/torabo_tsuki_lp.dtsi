@@ -92,6 +92,12 @@
         status = "disabled";
     };
 
+    torabo_pointing_settings: torabo_pointing_settings {
+        compatible = "torabo,input-processor-pointing-settings";
+        #input-processor-cells = <1>;
+        track-remainders;
+    };
+
     vbatt: vbatt {
         // Disable default battery monitoring
         status = "disabled";
