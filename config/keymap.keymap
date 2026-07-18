@@ -80,5 +80,21 @@
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
+
+        studio_extra_1 {
+            status = "reserved";
+        };
+
+        studio_extra_2 {
+            status = "reserved";
+        };
+
+        studio_extra_3 {
+            status = "reserved";
+        };
+
+        studio_extra_4 {
+            status = "reserved";
+        };
     };
 };

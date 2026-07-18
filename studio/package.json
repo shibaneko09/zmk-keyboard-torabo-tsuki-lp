@@ -1,0 +1,49 @@
+{
+  "name": "torabo-tsuki-xs-keymap-editor",
+  "version": "0.1.4",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
+    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
+    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "test": "npm run test:unit && npm run test:desktop && npm run build && node --test tests/rendered-html.test.mjs",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:desktop": "node --test desktop/serial-policy.test.mjs",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern desktop/runtime/renderer --ignore-pattern desktop/out",
+    "desktop:build": "vite build --config desktop/vite.config.ts",
+    "desktop:run": "npm run desktop:build && electron desktop/runtime",
+    "desktop:package": "npm run desktop:build && node desktop/package-mac.mjs"
+  },
+  "dependencies": {
+    "@zmkfirmware/zmk-studio-ts-client": "^0.0.18",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@electron/packager": "20.0.2",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "electron": "43.1.0",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.6",
+    "react-server-dom-webpack": "19.2.6",
+    "run-script-os": "^1.1.6",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vinext": "0.0.50",
+    "vite": "8.0.13",
+    "vitest": "^4.1.10",
+    "wrangler": "4.92.0"
+  },
+  "type": "module"
+}
