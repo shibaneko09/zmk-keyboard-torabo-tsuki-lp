@@ -6,7 +6,25 @@ import "meta.proto";
 import "core.proto";
 import "behaviors.proto";
 import "keymap.proto";
-import "pointing.proto";
+
+message PointingSettings {
+    uint32 cursor_scale_milli = 1;
+    uint32 scroll_scale_milli = 2;
+    bool invert_scroll_x = 3;
+    bool invert_scroll_y = 4;
+}
+
+message PointingRequest {
+    oneof request_type {
+        bool get_settings = 1;
+    }
+}
+
+message PointingResponse {
+    oneof response_type {
+        PointingSettings get_settings = 1;
+    }
+}
 
 message Request {
     uint32 request_id = 1;
@@ -15,7 +33,7 @@ message Request {
         zmk.core.Request core = 3;
         zmk.behaviors.Request behaviors = 4;
         zmk.keymap.Request keymap = 5;
-        zmk.pointing.Request pointing = 6;
+        PointingRequest pointing = 6;
     }
 }
 
@@ -33,7 +51,7 @@ message RequestResponse {
         zmk.core.Response core = 3;
         zmk.behaviors.Response behaviors = 4;
         zmk.keymap.Response keymap = 5;
-        zmk.pointing.Response pointing = 6;
+        PointingResponse pointing = 6;
     }
 }
 
