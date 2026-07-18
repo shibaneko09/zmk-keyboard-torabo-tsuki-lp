@@ -237,9 +237,16 @@ static struct bt_conn_cb power_mgmt_bt_conn_callbacks = {
     .disconnected = power_mgmt_bt_conn_disconnected_cb,
 };
 
+#define POINTING_LISTENER_NODE DT_NODELABEL(pointing_listener)
+
+#if DT_NODE_HAS_PROP(POINTING_LISTENER_NODE, device)
 static void mouse_input_callback(struct input_event *evt) {
     reset_idle_timer();
 }
+
+INPUT_CALLBACK_DEFINE(
+    DEVICE_DT_GET(DT_PHANDLE(POINTING_LISTENER_NODE, device)), mouse_input_callback);
+#endif
 
 static int split_power_mgmt_init(void) {
     LOG_INF("Initializing split power management");
@@ -258,8 +265,6 @@ static int split_power_mgmt_init(void) {
     
     return 0;
 }
-
-INPUT_CALLBACK_DEFINE(DEVICE_DT_GET_OR_NULL(DT_NODELABEL(trackball)) , mouse_input_callback);
 
 SYS_INIT(split_power_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 

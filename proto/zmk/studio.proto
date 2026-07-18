@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package zmk.studio;
+
+import "meta.proto";
+import "core.proto";
+import "behaviors.proto";
+import "keymap.proto";
+
+message PointingSettings {
+    uint32 cursor_scale_milli = 1;
+    uint32 scroll_scale_milli = 2;
+    bool invert_scroll_x = 3;
+    bool invert_scroll_y = 4;
+}
+
+message PointingRequest {
+    oneof request_type {
+        bool get_settings = 1;
+        PointingSettings set_settings = 2;
+    }
+}
+
+message PointingResponse {
+    oneof response_type {
+        PointingSettings get_settings = 1;
+        PointingSettings set_settings = 2;
+    }
+}
+
+message Request {
+    uint32 request_id = 1;
+
+    oneof subsystem {
+        zmk.core.Request core = 3;
+        zmk.behaviors.Request behaviors = 4;
+        zmk.keymap.Request keymap = 5;
+        PointingRequest pointing = 6;
+    }
+}
+
+message Response {
+    oneof type {
+        RequestResponse request_response = 1;
+        Notification notification = 2;
+    }
+}
+
+message RequestResponse {
+    uint32 request_id = 1;
+    oneof subsystem {
+        zmk.meta.Response meta = 2;
+        zmk.core.Response core = 3;
+        zmk.behaviors.Response behaviors = 4;
+        zmk.keymap.Response keymap = 5;
+        PointingResponse pointing = 6;
+    }
+}
+
+message Notification {
+    oneof subsystem {
+        zmk.core.Notification core = 2;
+        zmk.keymap.Notification keymap = 5;
+    }
+}

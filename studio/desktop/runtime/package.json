@@ -1,0 +1,8 @@
+{
+  "name": "torabo-tsuki-studio",
+  "productName": "Torabo Tsuki Studio",
+  "version": "0.1.4",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs"
+}
