@@ -1,0 +1,8 @@
+# Copyright (c) 2026 shibaneko09
+# SPDX-License-Identifier: MIT
+
+description: Runtime cursor and scroll settings processor for Torabo Tsuki
+
+compatible: "torabo,input-processor-pointing-settings"
+
+include: ip_one_param.yaml

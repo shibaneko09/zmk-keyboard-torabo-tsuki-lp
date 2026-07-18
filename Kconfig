@@ -1,6 +1,7 @@
 config TORABO_POINTING_SETTINGS_RPC
-    bool "Torabo Tsuki pointing settings Studio RPC spike"
+    bool "Torabo Tsuki pointing settings Studio RPC"
     depends on ZMK_STUDIO_RPC
     default n
     help
-      Enables the read-only pointing settings RPC used by the technical spike.
+      Enables runtime cursor and scroll settings, persistent storage, and the
+      project-specific Studio RPC used by the Torabo Tsuki editor.

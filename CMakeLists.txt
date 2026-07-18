@@ -5,5 +5,8 @@ if(CONFIG_SHIELD_TORABO_TSUKI_LP_LEFT OR CONFIG_SHIELD_TORABO_TSUKI_LP_RIGHT)
 endif()
 
 if(CONFIG_TORABO_POINTING_SETTINGS_RPC)
-  target_sources(app PRIVATE src/pointing_settings_rpc.c)
+  target_sources(app PRIVATE
+    src/pointing_settings.c
+    src/pointing_settings_rpc.c
+  )
 endif()

@@ -17,12 +17,14 @@ message PointingSettings {
 message PointingRequest {
     oneof request_type {
         bool get_settings = 1;
+        PointingSettings set_settings = 2;
     }
 }
 
 message PointingResponse {
     oneof response_type {
         PointingSettings get_settings = 1;
+        PointingSettings set_settings = 2;
     }
 }
 
