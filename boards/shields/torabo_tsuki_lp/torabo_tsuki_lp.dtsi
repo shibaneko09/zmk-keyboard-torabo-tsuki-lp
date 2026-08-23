@@ -1,5 +1,6 @@
 #include <zephyr/dt-bindings/gpio/nordic-nrf-gpio.h>
 #include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/zmk/keys.h>
 #include "torabo_tsuki_lp_layouts.dtsi"
 
 / {
@@ -96,6 +97,17 @@
         compatible = "torabo,input-processor-pointing-settings";
         #input-processor-cells = <1>;
         track-remainders;
+    };
+
+    torabo_pointing_router: torabo_pointing_router {
+        compatible = "torabo,input-processor-pointing-router";
+        #input-processor-cells = <0>;
+        gesture-layer = <6>;
+        threshold = <24>;
+        deadzone = <2>;
+        dominance-percent = <150>;
+        bindings = <&kp F13>, <&kp F14>, <&kp F15>, <&kp F16>;
+        status = "disabled";
     };
 
     vbatt: vbatt {

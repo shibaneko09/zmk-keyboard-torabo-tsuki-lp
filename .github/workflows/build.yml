@@ -2,5 +2,13 @@ name: Build ZMK firmware
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  pure-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pointing router pure tests
+        run: tests/run-pointing-router-tests.sh
+
   build:
+    needs: pure-tests
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3

@@ -2,3 +2,7 @@
     status = "okay";
     device = <&pointing_device>;
 };
+
+&torabo_pointing_router {
+    status = "okay";
+};

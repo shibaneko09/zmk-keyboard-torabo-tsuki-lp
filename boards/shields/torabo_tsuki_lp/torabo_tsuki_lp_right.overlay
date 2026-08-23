@@ -19,6 +19,13 @@
         <&torabo_pointing_settings 0>,
         <&zip_temp_layer_mouse 4 5000>;
 
+    gesture {
+        layers = <6>;
+        input-processors =
+            <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&torabo_pointing_router>;
+    };
+
     scroller {
         layers = <5>;
         input-processors =

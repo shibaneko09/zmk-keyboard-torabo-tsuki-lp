@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+description: Four-direction pointing gesture processor
+compatible: "torabo,input-processor-pointing-router"
+include: ip_zero_param.yaml
+properties:
+  gesture-layer:
+    type: int
+    required: true
+  threshold:
+    type: int
+    default: 24
+  deadzone:
+    type: int
+    default: 2
+  dominance-percent:
+    type: int
+    default: 150
+  bindings:
+    type: phandle-array
+    required: true
