@@ -8,6 +8,7 @@
 #include <zephyr/device.h>
 #include <zephyr/input/input.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <drivers/input_processor.h>
@@ -19,6 +20,8 @@
 #include <zmk/event_manager.h>
 #include <torabo/pointing_router.h>
 
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
 struct router_config {
 	uint8_t layer;
 	int16_t threshold;
@@ -27,11 +30,21 @@ struct router_config {
 	const struct zmk_behavior_binding *bindings;
 };
 
+enum router_gesture_phase {
+	ROUTER_GESTURE_PRESS,
+	ROUTER_GESTURE_RELEASE,
+};
+
 struct router_state {
 	struct torabo_gesture gesture[ZMK_INPUT_LISTENERS_LEN];
 	bool shared_latch;
 	uint8_t layer;
 	struct k_spinlock lock;
+	struct k_work_delayable gesture_work;
+	bool gesture_busy;
+	enum router_gesture_phase gesture_phase;
+	struct zmk_behavior_binding_event gesture_event;
+	struct zmk_behavior_binding gesture_binding;
 };
 static struct router_state *router_states[DT_NUM_INST_STATUS_OKAY(DT_DRV_COMPAT)];
 
@@ -40,19 +53,60 @@ static bool router_layer_active(const struct router_config *cfg) {
 	return zmk_keymap_layer_active(cfg->layer);
 }
 
-static int router_tap(const struct router_config *cfg, uint8_t source,
-			      enum torabo_gesture_direction direction) {
-	const struct zmk_behavior_binding *binding = &cfg->bindings[direction - TORABO_GESTURE_UP];
-	struct zmk_behavior_binding_event event = {
-		.position = ZMK_VIRTUAL_KEY_POSITION_BEHAVIOR_INPUT_PROCESSOR(source, 0),
-		.timestamp = k_uptime_get(),
-#if IS_ENABLED(CONFIG_ZMK_SPLIT)
-		.source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
-#endif
-	};
-	int press = zmk_behavior_invoke_binding(binding, event, 1);
-	int release = zmk_behavior_invoke_binding(binding, event, 0);
-	return press < 0 ? press : release;
+static void router_gesture_work(struct k_work *work) {
+	struct k_work_delayable *dwork = k_work_delayable_from_work(work);
+	struct router_state *state = CONTAINER_OF(dwork, struct router_state, gesture_work);
+	struct zmk_behavior_binding_event event;
+	struct zmk_behavior_binding binding;
+	enum router_gesture_phase phase;
+	k_spinlock_key_t key = k_spin_lock(&state->lock);
+	if (!state->gesture_busy) {
+		k_spin_unlock(&state->lock, key);
+		return;
+	}
+	event = state->gesture_event;
+	binding = state->gesture_binding;
+	phase = state->gesture_phase;
+	k_spin_unlock(&state->lock, key);
+
+	event.timestamp = k_uptime_get();
+	if (phase == ROUTER_GESTURE_PRESS) {
+		int invoke = zmk_behavior_invoke_binding(&binding, event, true);
+		if (invoke < 0) {
+			LOG_ERR("gesture press invoke failed (%d)", invoke);
+		}
+
+		key = k_spin_lock(&state->lock);
+		if (!state->gesture_busy) {
+			k_spin_unlock(&state->lock, key);
+			return;
+		}
+		state->gesture_phase = ROUTER_GESTURE_RELEASE;
+		int reschedule = k_work_reschedule(&state->gesture_work, K_MSEC(30));
+		if (reschedule < 0) {
+			k_spin_unlock(&state->lock, key);
+			LOG_ERR("failed to schedule gesture release (%d)", reschedule);
+			event.timestamp = k_uptime_get();
+			invoke = zmk_behavior_invoke_binding(&binding, event, false);
+			if (invoke < 0) {
+				LOG_ERR("gesture release invoke failed (%d)", invoke);
+			}
+			key = k_spin_lock(&state->lock);
+			state->gesture_busy = false;
+			k_spin_unlock(&state->lock, key);
+			return;
+		}
+		k_spin_unlock(&state->lock, key);
+		return;
+	}
+
+	int invoke = zmk_behavior_invoke_binding(&binding, event, false);
+	if (invoke < 0) {
+		LOG_ERR("gesture release invoke failed (%d)", invoke);
+	}
+	key = k_spin_lock(&state->lock);
+	state->gesture_busy = false;
+	k_spin_unlock(&state->lock, key);
 }
 
 static int router_handle(const struct device *dev, struct input_event *event,
@@ -80,9 +134,28 @@ static int router_handle(const struct device *dev, struct input_event *event,
 		&state->gesture[source], &gesture_cfg, dx, dy, event->sync, &state->shared_latch);
 	k_spin_unlock(&state->lock, key);
 	if (direction != TORABO_GESTURE_NONE) {
-		/* Always attempt release, even if press fails, to avoid a stuck key. */
-		/* ZMK event dispatch is synchronous; HID observes press then release. */
-		(void)router_tap(cfg, source, direction);
+		int submit = 0;
+		key = k_spin_lock(&state->lock);
+		if (!state->gesture_busy) {
+			state->gesture_event = (struct zmk_behavior_binding_event){
+				.position = ZMK_VIRTUAL_KEY_POSITION_BEHAVIOR_INPUT_PROCESSOR(source, 0),
+				.timestamp = k_uptime_get(),
+#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+				.source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+#endif
+			};
+			state->gesture_binding = cfg->bindings[direction - TORABO_GESTURE_UP];
+			state->gesture_busy = true;
+			state->gesture_phase = ROUTER_GESTURE_PRESS;
+			submit = k_work_reschedule(&state->gesture_work, K_NO_WAIT);
+			if (submit < 0) {
+				state->gesture_busy = false;
+			}
+		}
+		k_spin_unlock(&state->lock, key);
+		if (submit < 0) {
+			LOG_ERR("failed to submit gesture work (%d)", submit);
+		}
 	}
 	event->value = 0;
 	return ZMK_INPUT_PROC_CONTINUE;
@@ -120,9 +193,11 @@ static const struct zmk_input_processor_driver_api router_api = {.handle_event =
 		.deadzone = DT_INST_PROP(n, deadzone), .dominance = DT_INST_PROP(n, dominance_percent), \
 		.bindings = router_bindings_##n}; \
 	static struct router_state router_data_##n = {.layer = DT_INST_PROP(n, gesture_layer)}; \
-	static int router_register_##n(void) { router_states[n] = &router_data_##n; return 0; } \
-	SYS_INIT(router_register_##n, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY); \
-	DEVICE_DT_INST_DEFINE(n, NULL, NULL, &router_data_##n, &router_cfg_##n, POST_KERNEL, \
+	static int router_init_##n(const struct device *dev) { \
+		struct router_state *state = dev->data; \
+		k_work_init_delayable(&state->gesture_work, router_gesture_work); \
+		router_states[n] = state; return 0; } \
+	DEVICE_DT_INST_DEFINE(n, router_init_##n, NULL, &router_data_##n, &router_cfg_##n, POST_KERNEL, \
 		CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &router_api);
 DT_INST_FOREACH_STATUS_OKAY(ROUTER_INST)
 
