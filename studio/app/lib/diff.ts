@@ -1,6 +1,7 @@
 import { displayPositionForBinding } from "./layout";
 import type { BehaviorDefinition, Binding, KeymapChange, KeymapDocument } from "./types";
 import { keycodeLabel } from "./keycodes";
+import { bluetoothPresets, isBluetoothBehavior } from "./bluetooth";
 
 export function bindingsEqual(left: Binding, right: Binding) {
   return left.behaviorId === right.behaviorId && left.param1 === right.param1 && left.param2 === right.param2;
@@ -59,6 +60,13 @@ export function describeBinding(document: KeymapDocument, binding: Binding) {
   if (binding.label) return binding.label;
   const behavior = behaviorForBinding(document, binding);
   const name = normalizedBehaviorName(behavior);
+
+  if (behavior && isBluetoothBehavior(behavior)) {
+    const preset = bluetoothPresets(behavior).find((candidate) =>
+      candidate.param1 === binding.param1 && candidate.param2 === binding.param2,
+    );
+    return preset?.label ?? `Bluetooth (${binding.param1}:${binding.param2})`;
+  }
 
   if (name.includes("transparent")) return "▽";
   if (name === "none") return "—";

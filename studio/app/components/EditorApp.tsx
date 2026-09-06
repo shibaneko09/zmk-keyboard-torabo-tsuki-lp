@@ -3,6 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
 import { FACTORY_DOCUMENT } from "../lib/default-keymap";
+import {
+  bluetoothPresets,
+  bluetoothPresetValue,
+  defaultBluetoothBinding,
+  isBluetoothBehavior,
+  parseBluetoothPresetValue,
+} from "../lib/bluetooth";
 import { behaviorForBinding, describeBinding, diffDocuments } from "../lib/diff";
 import {
   filterKeycodes,
@@ -104,12 +111,55 @@ function defaultParameterValue(descriptions: ParameterValueDescription[], layers
 }
 
 function defaultBinding(behavior: BehaviorDefinition, layers: KeymapDocument["layers"]): Binding {
+  if (isBluetoothBehavior(behavior)) return defaultBluetoothBinding(behavior);
   const parameterSet = behavior.parameterSets[0] ?? { param1: [], param2: [] };
   return {
     behaviorId: behavior.id,
     param1: defaultParameterValue(parameterSet.param1, layers),
     param2: defaultParameterValue(parameterSet.param2, layers),
   };
+}
+
+function BluetoothParameterEditor({
+  behavior,
+  binding,
+  onChange,
+}: {
+  behavior: BehaviorDefinition;
+  binding: Binding;
+  onChange: (binding: Binding) => void;
+}) {
+  const presets = bluetoothPresets(behavior);
+  const currentValue = bluetoothPresetValue(binding.param1, binding.param2);
+  const knownValue = presets.some((preset) => bluetoothPresetValue(preset.param1, preset.param2) === currentValue);
+  const groups = ["接続先を選択", "順番に切り替え", "接続を管理"] as const;
+
+  return (
+    <label className="field">
+      <span>Bluetoothアクション</span>
+      <select
+        value={currentValue}
+        onChange={(event) => {
+          const parameters = parseBluetoothPresetValue(event.target.value);
+          if (parameters) onChange({ ...binding, ...parameters, label: undefined });
+        }}
+      >
+        {!knownValue && <option value={currentValue}>現在値 ({binding.param1}, {binding.param2})</option>}
+        {groups.map((group) => (
+          <optgroup key={group} label={group}>
+            {presets.filter((preset) => preset.group === group).map((preset) => (
+              <option
+                key={bluetoothPresetValue(preset.param1, preset.param2)}
+                value={bluetoothPresetValue(preset.param1, preset.param2)}
+              >
+                {preset.label}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </label>
+  );
 }
 
 function LayerRow({
@@ -839,26 +889,36 @@ export function EditorApp() {
                     {document.behaviors.map((behavior) => <option key={behavior.id} value={behavior.id}>{behavior.name}</option>)}
                   </select>
                 </label>
-                <ParameterEditor
-                  key={`param1-${selectedLayer.id}-${selectedBindingIndex}-${selectedBinding.behaviorId}`}
-                  label={parameterSet.param1[0]?.name || "Parameter 1"}
-                  descriptions={parameterSet.param1}
-                  value={selectedBinding.param1}
-                  document={document}
-                  search={search}
-                  setSearch={setSearch}
-                  onChange={(param1) => updateSelectedBinding({ ...selectedBinding, param1, label: undefined })}
-                />
-                <ParameterEditor
-                  key={`param2-${selectedLayer.id}-${selectedBindingIndex}-${selectedBinding.behaviorId}`}
-                  label={parameterSet.param2[0]?.name || "Parameter 2"}
-                  descriptions={parameterSet.param2}
-                  value={selectedBinding.param2}
-                  document={document}
-                  search={search}
-                  setSearch={setSearch}
-                  onChange={(param2) => updateSelectedBinding({ ...selectedBinding, param2, label: undefined })}
-                />
+                {selectedBehavior && isBluetoothBehavior(selectedBehavior) ? (
+                  <BluetoothParameterEditor
+                    behavior={selectedBehavior}
+                    binding={selectedBinding}
+                    onChange={updateSelectedBinding}
+                  />
+                ) : (
+                  <>
+                    <ParameterEditor
+                      key={`param1-${selectedLayer.id}-${selectedBindingIndex}-${selectedBinding.behaviorId}`}
+                      label={parameterSet.param1[0]?.name || "Parameter 1"}
+                      descriptions={parameterSet.param1}
+                      value={selectedBinding.param1}
+                      document={document}
+                      search={search}
+                      setSearch={setSearch}
+                      onChange={(param1) => updateSelectedBinding({ ...selectedBinding, param1, label: undefined })}
+                    />
+                    <ParameterEditor
+                      key={`param2-${selectedLayer.id}-${selectedBindingIndex}-${selectedBinding.behaviorId}`}
+                      label={parameterSet.param2[0]?.name || "Parameter 2"}
+                      descriptions={parameterSet.param2}
+                      value={selectedBinding.param2}
+                      document={document}
+                      search={search}
+                      setSearch={setSearch}
+                      onChange={(param2) => updateSelectedBinding({ ...selectedBinding, param2, label: undefined })}
+                    />
+                  </>
+                )}
                 {!selectedBehavior && (
                   <div className="unknown-behavior">
                     <strong>未知のBehavior {selectedBinding.behaviorId}</strong>

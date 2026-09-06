@@ -21,15 +21,16 @@ torabo-tsuki LP XS を初めて使うユーザーでも、実機に近い図を�
 4. デバイスが公開するBehaviorとパラメーターの編集
 5. キーコード検索、カテゴリ別選択、修飾キー（Ctrl / Shift / Alt / Command）の同時押し設定
 6. macOS US配列向けのCaps Lock、記号、Keypad、F13〜F24、Command / Option、システム操作キー
-7. カーソル速度、スクロール速度、縦・横スクロール方向の設定
-8. Undo / Redo
-9. 接続時状態を基準とした変更差分
-10. 明示的な確認後の一括Write
-11. JSON Import / Export
-12. 未書き込み下書きのLocalStorage保存
-13. USB接続、切断、再接続、エラー表示
-14. Web版と同じ編集機能を持つmacOS `.app`
-15. macOS上でのSerialデバイス選択と最小権限設定
+7. Bluetooth 1〜5の直接選択、次／前のプロファイル切替、ペアリング管理キーの設定
+8. カーソル速度、スクロール速度、縦・横スクロール方向の設定
+9. Undo / Redo
+10. 接続時状態を基準とした変更差分
+11. 明示的な確認後の一括Write
+12. JSON Import / Export
+13. 未書き込み下書きのLocalStorage保存
+14. USB接続、切断、再接続、エラー表示
+15. Web版と同じ編集機能を持つmacOS `.app`
+16. macOS上でのSerialデバイス選択と最小権限設定
 
 ## 安全要件
 
@@ -45,7 +46,7 @@ torabo-tsuki LP XS を初めて使うユーザーでも、実機に近い図を�
 
 ## 初版の対象外
 
-- Bluetooth接続
+- Bluetooth経由でのStudio通信（Bluetooth切替キーの設定は対応）
 - 一般公開・ホスティング
 - コンボ編集
 - タイピングトレーナー

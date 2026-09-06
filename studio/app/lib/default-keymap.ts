@@ -33,7 +33,28 @@ export const MOCK_BEHAVIORS: BehaviorDefinition[] = [
   { id: MOCK_BEHAVIOR_IDS.none, name: "None", parameterSets: [{ param1: [], param2: [] }] },
   { id: MOCK_BEHAVIOR_IDS.kt, name: "Key Toggle", parameterSets: [{ param1: [hidParameter], param2: [] }] },
   { id: MOCK_BEHAVIOR_IDS.mkp, name: "Mouse Key Press", parameterSets: [{ param1: [hidParameter], param2: [] }] },
-  { id: MOCK_BEHAVIOR_IDS.bt, name: "Bluetooth", parameterSets: [{ param1: [{ name: "Command", kind: "range", min: 0, max: 255 }], param2: [{ name: "Profile", kind: "range", min: 0, max: 5 }] }] },
+  {
+    id: MOCK_BEHAVIOR_IDS.bt,
+    name: "Bluetooth",
+    parameterSets: [
+      {
+        param1: [
+          { name: "Next Profile", kind: "constant", value: 1 },
+          { name: "Previous Profile", kind: "constant", value: 2 },
+          { name: "Clear All Profiles", kind: "constant", value: 4 },
+          { name: "Clear Selected Profile", kind: "constant", value: 0 },
+        ],
+        param2: [],
+      },
+      {
+        param1: [
+          { name: "Select Profile", kind: "constant", value: 3 },
+          { name: "Disconnect Profile", kind: "constant", value: 5 },
+        ],
+        param2: [{ name: "Profile", kind: "range", min: 0, max: 5 }],
+      },
+    ],
+  },
 ];
 
 const binding = (behaviorId: number, param1 = 0, param2 = 0, label?: string): Binding => ({ behaviorId, param1, param2, ...(label ? { label } : {}) });

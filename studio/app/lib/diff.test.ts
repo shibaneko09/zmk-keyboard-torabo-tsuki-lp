@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FACTORY_DOCUMENT, MOCK_BEHAVIOR_IDS } from "./default-keymap";
-import { bindingsEqual, diffDocuments } from "./diff";
+import { bindingsEqual, describeBinding, diffDocuments } from "./diff";
 
 describe("keymap diff", () => {
   it("ignores display-only labels", () => {
@@ -37,5 +37,20 @@ describe("keymap diff", () => {
         after: expect.objectContaining({ name: "Navigation" }),
       }),
     ]);
+  });
+
+  it("describes Bluetooth presets using both parameters", () => {
+    const bluetooth = MOCK_BEHAVIOR_IDS.bt;
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 3, param2: 0 })).toBe("Bluetooth 1");
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 3, param2: 2 })).toBe("Bluetooth 3");
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 1, param2: 0 })).toBe("次のBluetooth");
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 2, param2: 0 })).toBe("前のBluetooth");
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 0, param2: 0 })).toBe("選択中のペアリングを消去");
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: bluetooth, param1: 5, param2: 1 })).toBe("Bluetooth 2を切断");
+  });
+
+  it("shows raw Bluetooth parameters for unknown combinations", () => {
+    expect(describeBinding(FACTORY_DOCUMENT, { behaviorId: MOCK_BEHAVIOR_IDS.bt, param1: 99, param2: 7 }))
+      .toBe("Bluetooth (99:7)");
   });
 });
