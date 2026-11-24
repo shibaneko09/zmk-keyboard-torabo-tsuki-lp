@@ -481,11 +481,11 @@ function PointingSettingsPanel({
               type="range"
               min={SCROLL_SCALE_MIN_MILLI}
               max={SCROLL_SCALE_MAX_MILLI}
-              step={50}
+              step={10}
               value={settings.scrollScaleMilli}
               onChange={(event) => onChange({ ...settings, scrollScaleMilli: Number(event.target.value) })}
             />
-            <small>0.10×</small><small>2.00×</small>
+            <small>{(SCROLL_SCALE_MIN_MILLI / 1000).toFixed(2)}×</small><small>{(SCROLL_SCALE_MAX_MILLI / 1000).toFixed(2)}×</small>
           </label>
           <div className="direction-fields">
             <span>スクロール方向</span>

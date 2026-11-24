@@ -66,6 +66,14 @@ describe("pointing Studio RPC wire spike", () => {
     })).toThrow("Pointing settings are out of range");
   });
 
+  it("accepts the lowest scroll scale and rejects values below it", () => {
+    const base = { cursorScaleMilli: 1000, invertScrollX: true, invertScrollY: false };
+
+    expect(() => encodeSetPointingSettingsRequest(1, { ...base, scrollScaleMilli: 20 })).not.toThrow();
+    expect(() => encodeSetPointingSettingsRequest(1, { ...base, scrollScaleMilli: 19 }))
+      .toThrow("Pointing settings are out of range");
+  });
+
   it("rejects a response without pointing settings", () => {
     expect(() => decodePointingSettingsResponse(Uint8Array.from([0x0a, 0x02, 0x08, 0x01])))
       .toThrow("Pointing settings response is incomplete");

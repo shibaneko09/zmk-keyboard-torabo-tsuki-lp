@@ -6,7 +6,7 @@ import * as _m0 from "protobufjs/minimal";
 export const POINTING_SUBSYSTEM_FIELD = 6;
 export const CURSOR_SCALE_MIN_MILLI = 250;
 export const CURSOR_SCALE_MAX_MILLI = 2000;
-export const SCROLL_SCALE_MIN_MILLI = 100;
+export const SCROLL_SCALE_MIN_MILLI = 20;
 export const SCROLL_SCALE_MAX_MILLI = 2000;
 
 export type PointingSettings = {
